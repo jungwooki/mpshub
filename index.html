@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPS 프로젝트 허브</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Pretendard Variable"', 'Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+                    },
+                    colors: {
+                        laliga: {
+                            red: '#FF3333', // 라리가 특유의 비비드 레드
+                            bg: '#F8F9FA', // 밝은 배경
+                            card: '#FFFFFF', // 흰색 카드
+                            border: '#E5E7EB' // 연한 회색 테두리
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Pretendard Variable Font Import */
+        @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css");
+
+        body {
+            font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #F8F9FA; /* laliga-bg */
+            color: #111827; /* gray-900 */
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Custom Scrollbar for ID List (Light Theme) */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #F3F4F6;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #D1D5DB;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #FF3333;
+        }
+
+        /* Input auto-fill override for light mode */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 30px #FFFFFF inset !important;
+            -webkit-text-fill-color: #111827 !important;
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen flex items-center justify-center overflow-x-hidden transition-colors duration-300">
+
+    <!-- 1. LOGIN SCREEN -->
+    <div id="login-screen" class="w-full max-w-4xl p-6 transition-all duration-500 opacity-100">
+        <div class="text-center mb-10 flex flex-col items-center justify-center">
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 mb-4">
+                <img src="https://postfiles.pstatic.net/MjAyNjA0MTNfMTc3/MDAxNzc2MDkwNTYxMTg3.xqzr-WO5BCcZJDsJpW3sKXr7wNmLb00fL_4lcNWXpZog.DuxA_EmVLBOmjnTVeIjAwA3T39oItRuzQpPUpXqRngUg.PNG/2_(8).png?type=w580" alt="MPS Logo" class="h-20 md:h-28 w-auto object-contain drop-shadow-md">
+                <h1 class="text-5xl md:text-6xl font-black italic tracking-tighter uppercase text-gray-900">MPS <span class="text-laliga-red">Hub</span></h1>
+            </div>
+            <p class="text-gray-500 font-medium text-lg">프로젝트 통합 관리 시스템</p>
+        </div>
+
+        <div class="bg-laliga-card border border-laliga-border rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+            
+            <!-- Left: Branch Selection (ID) -->
+            <div class="md:w-1/3 bg-gray-50 p-6 border-b md:border-b-0 md:border-r border-laliga-border">
+                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="ph-fill ph-map-pin text-laliga-red mr-2 text-xl"></i> 지점 선택
+                </h2>
+                <div class="space-y-2 max-h-64 overflow-y-auto custom-scrollbar pr-2" id="branch-list">
+                    <!-- Branches will be injected here via JS -->
+                </div>
+            </div>
+
+            <!-- Right: Manager Selection & Password -->
+            <div class="md:w-2/3 p-6 md:p-10 flex flex-col justify-center">
+                <h2 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="ph-fill ph-users text-laliga-red mr-2 text-xl"></i> 담당자 선택
+                </h2>
+                
+                <!-- Manager List Grid -->
+                <div id="manager-list" class="grid grid-cols-2 gap-3 mb-8 min-h-[100px]">
+                    <div class="col-span-2 text-gray-400 text-sm flex h-full items-center justify-center italic">
+                        먼저 좌측에서 지점을 선택해주세요.
+                    </div>
+                </div>
+
+                <!-- Password Input -->
+                <div class="mt-auto">
+                    <label class="block text-sm font-bold text-gray-600 mb-2" for="password">접속 비밀번호</label>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input 
+                            type="password" 
+                            id="password" 
+                            placeholder="비밀번호를 입력하세요" 
+                            class="flex-1 bg-white border border-gray-300 text-gray-900 placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:border-laliga-red focus:ring-1 focus:ring-laliga-red transition-colors text-lg"
+                            onkeypress="handleEnter(event)"
+                            disabled
+                        >
+                        <button 
+                            id="login-btn"
+                            onclick="attemptLogin()"
+                            class="bg-laliga-red hover:bg-red-600 text-white font-bold py-3 px-8 rounded-lg transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
+                            disabled
+                        >
+                            로그인 <i class="ph-bold ph-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                    <p id="error-msg" class="text-laliga-red text-sm mt-2 hidden font-medium">비밀번호가 일치하지 않습니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. DASHBOARD SCREEN (Hidden initially) -->
+    <div id="dashboard-screen" class="hidden w-full min-h-screen flex-col transition-all duration-500 opacity-0 bg-laliga-bg">
+        <!-- Header -->
+        <header class="bg-laliga-card border-b border-laliga-border sticky top-0 z-50 shadow-sm">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <img src="https://postfiles.pstatic.net/MjAyNjA0MTNfMTc3/MDAxNzc2MDkwNTYxMTg3.xqzr-WO5BCcZJDsJpW3sKXr7wNmLb00fL_4lcNWXpZog.DuxA_EmVLBOmjnTVeIjAwA3T39oItRuzQpPUpXqRngUg.PNG/2_(8).png?type=w580" alt="MPS Logo" class="h-16 md:h-20 w-auto object-contain drop-shadow-sm">
+                    <h1 class="text-2xl font-black italic tracking-tight hidden sm:block text-gray-900">MPS <span class="text-laliga-red">PROJECTS</span></h1>
+                </div>
+                <div class="flex items-center gap-4 text-sm font-medium">
+                    <span id="user-greeting" class="text-gray-700 bg-gray-100 px-4 py-2 rounded-full border border-gray-200 font-semibold"></span>
+                    <button onclick="logout()" class="text-gray-500 hover:text-laliga-red transition-colors flex items-center gap-1">
+                        <i class="ph-bold ph-sign-out"></i> 로그아웃
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 w-full max-w-7xl mx-auto px-6 py-12">
+            <div class="mb-10">
+                <h2 class="text-3xl font-bold mb-2 text-gray-900">대시보드</h2>
+                <p class="text-gray-500">원하시는 시스템을 선택하여 이동하세요.</p>
+            </div>
+
+            <!-- Grid Layout -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="project-grid">
+                <!-- Projects will be rendered here -->
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- Data Definitions ---
+        const usersData = {
+            "신도림점": ["이정욱", "정지은", "한유경", "조내경"],
+            "화성동탄점": ["민은경"]
+        };
+
+        const projects = [
+            { title: '외부 안내 클리닉', url: 'https://sportsclinic-y23w.vercel.app', icon: 'ph-hospital', color: 'text-blue-500' },
+            { title: 'MPS 의료진 매뉴얼', url: 'https://rnd-ten.vercel.app', icon: 'ph-book-open-text', color: 'text-indigo-500' },
+            { title: 'M-REPORT', url: 'https://reportm.vercel.app', icon: 'ph-chart-bar', color: 'text-emerald-500' },
+            { title: 'P-REPORT', url: 'https://reportp.vercel.app', icon: 'ph-trend-up', color: 'text-amber-500' },
+            { title: 'S-REPORT', url: 'https://reports-three-drab.vercel.app', icon: 'ph-files', color: 'text-orange-500' },
+            { title: '멘탈 테스트 (현장용)', url: 'https://mpsmental.vercel.app/', icon: 'ph-brain', color: 'text-purple-500' },
+            { title: '멘탈 코칭가이드 (지도자용)', url: 'https://mentalguide.vercel.app/', icon: 'ph-target', color: 'text-rose-500' }
+        ];
+
+        // --- State Variables ---
+        let selectedBranch = null;
+        let selectedManager = null;
+
+        // --- UI Rendering ---
+        function renderBranches() {
+            const container = document.getElementById('branch-list');
+            container.innerHTML = '';
+            
+            Object.keys(usersData).forEach(branch => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left px-4 py-4 rounded-xl mb-2 font-bold transition-all duration-200 border-2 ${selectedBranch === branch ? 'border-laliga-red bg-red-50 text-laliga-red' : 'border-transparent bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'}`;
+                btn.innerHTML = `<i class="ph-bold ph-buildings mr-2 ${selectedBranch === branch ? 'text-laliga-red' : ''}"></i> ${branch}`;
+                btn.onclick = () => selectBranch(branch);
+                container.appendChild(btn);
+            });
+        }
+
+        function renderManagers() {
+            const container = document.getElementById('manager-list');
+            container.innerHTML = '';
+
+            if (!selectedBranch) return;
+
+            const managers = usersData[selectedBranch];
+            managers.forEach(manager => {
+                const btn = document.createElement('button');
+                btn.className = `px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 border ${selectedManager === manager ? 'bg-gray-900 text-white border-gray-900 shadow-md' : 'bg-white border-gray-300 text-gray-600 hover:border-gray-500 hover:text-gray-900'}`;
+                btn.innerHTML = `<i class="ph-fill ph-user-circle mr-1"></i> ${manager}`;
+                btn.onclick = () => selectManager(manager);
+                container.appendChild(btn);
+            });
+        }
+
+        function renderProjects() {
+            const container = document.getElementById('project-grid');
+            container.innerHTML = '';
+
+            projects.forEach(project => {
+                const a = document.createElement('a');
+                a.href = project.url;
+                a.target = "_blank";
+                a.rel = "noopener noreferrer";
+                // Light theme card
+                a.className = "group block bg-white border border-gray-200 p-6 rounded-2xl hover:border-laliga-red transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_12px_30px_rgb(255,51,51,0.12)] relative overflow-hidden";
+                
+                a.innerHTML = `
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-gray-50 to-transparent rounded-bl-full -mr-4 -mt-4 transition-colors duration-300 group-hover:from-red-50"></div>
+                    <div class="flex justify-between items-start mb-6 relative z-10">
+                        <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 group-hover:border-red-200 group-hover:bg-red-50/50 transition-colors">
+                            <i class="ph-fill ${project.icon} text-3xl ${project.color}"></i>
+                        </div>
+                        <i class="ph-bold ph-arrow-up-right text-gray-300 group-hover:text-laliga-red transition-colors"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2 relative z-10">${project.title}</h3>
+                    <p class="text-gray-500 text-sm font-medium flex items-center group-hover:text-laliga-red transition-colors relative z-10 mt-6 pt-4 border-t border-gray-100">
+                        시스템 열기 <i class="ph-bold ph-caret-right ml-1"></i>
+                    </p>
+                `;
+                container.appendChild(a);
+            });
+        }
+
+        // --- Interaction Logic ---
+        function selectBranch(branch) {
+            selectedBranch = branch;
+            selectedManager = null; // Reset manager when branch changes
+            renderBranches();
+            renderManagers();
+            updateLoginState();
+        }
+
+        function selectManager(manager) {
+            selectedManager = manager;
+            renderManagers();
+            updateLoginState();
+        }
+
+        function updateLoginState() {
+            const pwInput = document.getElementById('password');
+            const loginBtn = document.getElementById('login-btn');
+            
+            if (selectedBranch && selectedManager) {
+                pwInput.disabled = false;
+                loginBtn.disabled = false;
+                pwInput.focus();
+            } else {
+                pwInput.disabled = true;
+                loginBtn.disabled = true;
+                pwInput.value = '';
+            }
+            document.getElementById('error-msg').classList.add('hidden');
+        }
+
+        function handleEnter(event) {
+            if (event.key === 'Enter') {
+                attemptLogin();
+            }
+        }
+
+        function attemptLogin() {
+            const pw = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+
+            if (pw === '2') {
+                // Success
+                errorMsg.classList.add('hidden');
+                
+                // Set greeting
+                document.getElementById('user-greeting').innerHTML = `<span class="text-laliga-red font-bold">${selectedBranch}</span> ${selectedManager}님 환영합니다`;
+                
+                // Screen transition
+                const loginScreen = document.getElementById('login-screen');
+                const dashboardScreen = document.getElementById('dashboard-screen');
+
+                loginScreen.classList.remove('opacity-100');
+                loginScreen.classList.add('opacity-0', 'scale-95');
+                
+                setTimeout(() => {
+                    loginScreen.classList.add('hidden');
+                    document.body.classList.remove('justify-center', 'items-center');
+                    document.body.classList.add('items-start');
+                    
+                    dashboardScreen.classList.remove('hidden');
+                    // Small delay to allow display:block to apply before animating opacity
+                    setTimeout(() => {
+                        dashboardScreen.classList.remove('opacity-0');
+                        dashboardScreen.classList.add('opacity-100');
+                    }, 50);
+                }, 500);
+
+            } else {
+                // Fail
+                errorMsg.classList.remove('hidden');
+                const pwInput = document.getElementById('password');
+                pwInput.value = '';
+                pwInput.focus();
+                
+                // Shake effect
+                pwInput.classList.add('animate-pulse', 'border-red-500');
+                setTimeout(() => {
+                    pwInput.classList.remove('animate-pulse', 'border-red-500');
+                }, 500);
+            }
+        }
+
+        function logout() {
+            // Reset state
+            selectedBranch = null;
+            selectedManager = null;
+            document.getElementById('password').value = '';
+            
+            // Screen transition back
+            const loginScreen = document.getElementById('login-screen');
+            const dashboardScreen = document.getElementById('dashboard-screen');
+
+            dashboardScreen.classList.remove('opacity-100');
+            dashboardScreen.classList.add('opacity-0');
+            
+            setTimeout(() => {
+                dashboardScreen.classList.add('hidden');
+                document.body.classList.add('justify-center', 'items-center');
+                document.body.classList.remove('items-start');
+                
+                loginScreen.classList.remove('hidden');
+                
+                renderBranches();
+                renderManagers();
+                updateLoginState();
+
+                setTimeout(() => {
+                    loginScreen.classList.remove('opacity-0', 'scale-95');
+                    loginScreen.classList.add('opacity-100');
+                }, 50);
+            }, 500);
+        }
+
+        // --- Initialization ---
+        renderBranches();
+        renderProjects();
+
+    </script>
+</body>
+</html>
